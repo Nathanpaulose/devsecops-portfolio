@@ -1,0 +1,86 @@
+# Security pipeline: runs on every pull request to main and every push to main.
+# Any failing job blocks the merge (once branch protection is switched on).
+#
+# Third-party actions are pinned to full commit SHAs, not tags. Tags can be
+# moved by an attacker (this happened to aquasecurity/trivy-action in March
+# 2026, CVE-2026-33634). Dependabot keeps the pins up to date.
+
+name: Security Pipeline
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Least privilege: jobs can only read the repo unless they ask for more.
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.13"
+      - name: Install dependencies
+        run: pip install -r app/requirements.txt -r app/requirements-dev.txt
+      - name: Run tests
+        working-directory: app
+        run: python -m pytest -v
+
+  sast:
+    name: SAST (Bandit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.13"
+      - name: Install Bandit
+        run: pip install -r app/requirements-dev.txt
+      # Fails on MEDIUM severity and above. Bandit rates SQL injection as
+      # Medium (its heuristic can't be certain), so a High-only gate would let
+      # SQLi through.
+      - name: Scan code
+        run: bandit -r app --exclude app/tests --severity-level medium
+
+  dependencies:
+    name: Dependency scan (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.13"
+      - name: Install pip-audit
+        run: pip install -r app/requirements-dev.txt
+      # Fails on ANY known vulnerability in our dependencies (checked against
+      # the PyPI/OSV advisory database).
+      - name: Audit dependencies
+        run: pip-audit -r app/requirements.txt --desc
+
+  secrets:
+    name: Secret scan (Gitleaks)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # full history, so secrets in old commits are caught too
+          persist-credentials: false
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: false

@@ -223,9 +223,11 @@ def bookings():
 @login_required
 def search_bookings():
     room = request.args.get("room", "")
+    # Parameterised query: user input is passed as data, never as SQL.
     rows = get_db().execute(
-        f"SELECT id, room, booking_date, slot FROM bookings "
-        f"WHERE user_id = {session['user_id']} AND room LIKE '%{room}%'"
+        "SELECT id, room, booking_date, slot FROM bookings "
+        "WHERE user_id = ? AND room LIKE ? ORDER BY booking_date, slot",
+        (session["user_id"], f"%{room}%"),
     ).fetchall()
     return render_template(
         "bookings.html",

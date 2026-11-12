@@ -15,6 +15,10 @@
 </form>
 
 <h2>My bookings</h2>
+<form method="get" action="{{ url_for('search_bookings') }}">
+  <label>Filter by room <input name="room" placeholder="e.g. Study"></label>
+  <button type="submit">Search</button>
+</form>
 {% if bookings %}
 <table>
   <tr><th>Room</th><th>Date</th><th>Slot</th><th></th></tr>

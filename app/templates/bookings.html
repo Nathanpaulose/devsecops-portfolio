@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}My bookings{% endblock %}
+{% block content %}
+<h2>Book a room</h2>
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>Room
+    <select name="room">{% for r in rooms %}<option>{{ r }}</option>{% endfor %}</select>
+  </label>
+  <label>Date <input type="date" name="booking_date" min="{{ today }}" required></label>
+  <label>Slot
+    <select name="slot">{% for s in slots %}<option>{{ s }}</option>{% endfor %}</select>
+  </label>
+  <button type="submit">Book</button>
+</form>
+
+<h2>My bookings</h2>
+{% if bookings %}
+<table>
+  <tr><th>Room</th><th>Date</th><th>Slot</th><th></th></tr>
+  {% for b in bookings %}
+  <tr>
+    <td>{{ b.room }}</td><td>{{ b.booking_date }}</td><td>{{ b.slot }}</td>
+    <td>
+      <form method="post" action="{{ url_for('cancel_booking', booking_id=b.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit">Cancel</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>No bookings yet.</p>
+{% endif %}
+{% endblock %}

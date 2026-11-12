@@ -1,0 +1,11 @@
+body { font-family: system-ui, sans-serif; max-width: 720px; margin: 0 auto; padding: 0 16px; color: #1f2328; }
+header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #d0d7de; }
+form { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin: 12px 0; }
+form.inline { margin: 0; align-items: center; }
+label { display: flex; flex-direction: column; font-size: 14px; gap: 4px; }
+input, select, button { padding: 6px 10px; font-size: 14px; }
+button { cursor: pointer; }
+table { width: 100%; border-collapse: collapse; }
+td, th { text-align: left; padding: 6px; border-bottom: 1px solid #d0d7de; }
+td form { margin: 0; }
+.flash { background: #fff8c5; padding: 8px 12px; border-radius: 6px; }

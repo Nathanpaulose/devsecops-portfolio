@@ -219,6 +219,23 @@ def bookings():
     )
 
 
+@app.route("/bookings/search")
+@login_required
+def search_bookings():
+    room = request.args.get("room", "")
+    rows = get_db().execute(
+        f"SELECT id, room, booking_date, slot FROM bookings "
+        f"WHERE user_id = {session['user_id']} AND room LIKE '%{room}%'"
+    ).fetchall()
+    return render_template(
+        "bookings.html",
+        bookings=rows,
+        rooms=ROOMS,
+        slots=SLOTS,
+        today=date.today().isoformat(),
+    )
+
+
 @app.route("/bookings/<int:booking_id>/cancel", methods=["POST"])
 @login_required
 def cancel_booking(booking_id):

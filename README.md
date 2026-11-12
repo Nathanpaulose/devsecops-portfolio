@@ -67,11 +67,11 @@ flowchart LR
 
 **Blocked:** Bandit fails the build on the SQL injection
 
-![Pipeline blocking SQL injection](docs/pipeline-failed.jpg)
+![Pipeline blocking SQL injection](docs/failed/image.jpg)
 
 **Fixed:** all checks pass after the parameterised query
 
-![Pipeline passing after fix](docs/pipeline-passed.jpg)
+![Pipeline passing after fix](docs/passed/image.jpg)
 
 ## Run locally
 

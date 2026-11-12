@@ -1,0 +1,12 @@
+# Opens PRs when dependencies or pinned GitHub Actions have updates.
+# Each Dependabot PR goes through the same security pipeline.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /app
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

@@ -101,3 +101,20 @@ def test_csrf_enforced(client):
     main.app.config["WTF_CSRF_ENABLED"] = True
     response = client.post("/register", data={"username": "eve", "password": PASSWORD})
     assert response.status_code == 400
+
+
+def test_search_filters_own_bookings(client):
+    register_and_login(client)
+    book(client, room="Study Room A")
+    book(client, room="Meeting Room")
+    response = client.get("/bookings/search?room=Meeting")
+    assert b"Meeting Room" in response.data
+    assert b"<td>Study Room A</td>" not in response.data
+
+
+def test_search_treats_sql_as_text(client):
+    register_and_login(client)
+    book(client)
+    response = client.get("/bookings/search?room=' OR '1'='1")
+    assert response.status_code == 200
+    assert b"<td>Study Room A</td>" not in response.data
